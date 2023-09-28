@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <div class="q-pa-md">
-      <q-btn-dropdown color="primary" label="Dropdown Button">
+      <q-btn-dropdown color="primary" label="Выбор станции">
         <q-list>
           <q-item
             v-for="(item, index) in stations"
