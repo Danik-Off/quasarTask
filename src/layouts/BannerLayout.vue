@@ -17,6 +17,7 @@
             :id="seat.id"
             @click="onFreeSeatClick"
             :disabled="seat.status"
+            :class="seat.choosen ? 'choosenButton' : null"
             :key="seat.id + +seat.status"
             :label="seat.id"
             padding="lg"
@@ -32,7 +33,11 @@
     </q-card>
   </q-dialog>
 </template>
-
+<style>
+.choosenButton {
+  border: 1px solid red;
+}
+</style>
 <script>
 import { ref } from "vue";
 import { useTrainsStore } from "../stores/trainStore";
@@ -57,15 +62,25 @@ export default {
   },
   methods: {
     bookingEnd() {
-      this.store.booking(this.train.trainId, this.seats);
+      let seats = this.seats.map((seat) => {
+        let st = { id: seat.id, status: seat.status };
+        if (!st.status && seat.choosen == true) {
+          st.status = true;
+        }
+        return st;
+      });
+      this.store.booking(this.train.trainId, seats);
       this.persistent = false;
+      this.store.updatedFromLocal();
     },
     onFreeSeatClick(e) {
       let button = e.currentTarget;
       let id = button.id;
       this.seats = this.seats.map((seat) => {
         if (seat.id == id) {
-          return { id: seat.id, status: true };
+          if (seat.choosen)
+            return { id: seat.id, status: seat.status, choosen: false };
+          else return { id: seat.id, status: seat.status, choosen: true };
         }
         return seat;
       });
@@ -77,7 +92,9 @@ export default {
         (train) => train.trainId === +trainId
       );
       console.log(this.train);
-      this.seats = this.train.seats;
+      this.seats = this.train.seats.map((seat) => {
+        return { id: seat.id, status: seat.status, choosen: false };
+      });
       this.persistent = true;
     },
   },

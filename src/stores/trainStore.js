@@ -35,7 +35,13 @@ export const useTrainsStore = defineStore("trains", {
   },
 
   actions: {
+    updatedFromLocal() {
+      const initialState = JSON.parse(localStorage.getItem("trainsStore"));
+      console.log(initialState);
+      if (initialState) this.$patch(initialState);
+    },
     booking(trainId, seats) {
+      console.log(seats);
       this.$patch((state) => {
         state.trains.map((train) => {
           if (train.trainId == trainId) {

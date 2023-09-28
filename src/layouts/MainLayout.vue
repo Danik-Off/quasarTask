@@ -1,12 +1,31 @@
 <template>
   <div class="q-pa-md">
+    <div class="q-pa-md">
+      <q-btn-dropdown color="primary" label="Dropdown Button">
+        <q-list>
+          <q-item
+            v-for="(item, index) in stations"
+            :key="index"
+            clickable
+            v-close-popup
+            @click="onItemClick(item)"
+          >
+            <q-item-section>
+              <q-item-label>{{ item }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+    </div>
     <q-table
-      title="Treats"
-      :rows="rows"
+      :key="keyTable"
+      :title="filter"
+      :rows="processedFilter(filter)"
       :columns="columns"
       row-key="id"
       @row-click="rowclick"
-    />
+    >
+    </q-table>
     <BannerLayout ref="banner"></BannerLayout>
   </div>
 </template>
@@ -52,14 +71,18 @@ export default {
   components: {
     BannerLayout,
   },
-  updated() {
-    const initialState = JSON.parse(localStorage.getItem("trainsStore"));
-    if (initialState) store.$patch(initialState);
+  data() {
+    return {
+      keyTable: 0,
+      stations: new Set(),
+      filter: "Все станции",
+    };
   },
   setup() {
     const store = useTrainsStore();
     const initialState = JSON.parse(localStorage.getItem("trainsStore"));
     if (initialState) store.$patch(initialState);
+
     store.$subscribe((mutation, state) => {
       const key = Math.random();
       state.key = key;
@@ -71,11 +94,26 @@ export default {
       rows: store.trains,
     };
   },
+  mounted() {
+    this.stations.add("Все станции");
+    for (const train of this.store.trains) {
+      this.stations.add(train.station);
+    }
+  },
+  computed: {},
   methods: {
+    processedFilter(filter) {
+      if (filter != "Все станции")
+        return this.store.trains.filter((train) => train.station != filter);
+      return this.store.trains;
+    },
+    onItemClick(station) {
+      this.filter = station;
+    },
     actions() {
-      console.log("oi");
-      const initialState = JSON.parse(localStorage.getItem("trainsStore"));
-      if (initialState) this.store.$patch(initialState);
+      this.rows = this.store.trains;
+      console.log(this.rows);
+      this.keyTable++;
     },
     rowclick(evt, row) {
       this.$refs.banner.show(row.trainId, this.actions);
